@@ -83,17 +83,19 @@ class HomeController extends Controller
         }       
         $video_url = $poster_url = '';
         if($origin_url != ''){
+            //dd($origin_url);
             $ch = curl_init();
             curl_setopt( $ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; rv:1.7.3) Gecko/20041001 Firefox/0.10.1" );
             curl_setopt( $ch, CURLOPT_URL, $origin_url );
             curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
             if( strpos($origin_url, 'play.to')){
-                curl_setopt($ch, CURLOPT_REFERER, "http://fastplay.to/");                
+               // curl_setopt($ch, CURLOPT_REFERER, "http://fastplay.to/");                
             }
-            curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+           curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-            $result = curl_exec($ch);            
+            $result = curl_exec($ch); 
+           // dd($result);           
             curl_close($ch);
             if( strpos($result, 'streamable')){
                 $tmp = explode('"url": "', $result);               
