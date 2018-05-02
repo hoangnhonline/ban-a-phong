@@ -88,8 +88,7 @@ class HomeController extends Controller
             curl_setopt( $ch, CURLOPT_URL, $origin_url );
             curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
             if( strpos($origin_url, 'play.to')){
-                curl_setopt($ch, CURLOPT_REFERER, "http://fastplay.to/");
-                curl_setopt($ch, CURLOPT_PROXY, '128.199.199.41:3128');
+                curl_setopt($ch, CURLOPT_REFERER, "http://fastplay.to/");                
             }
             curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
