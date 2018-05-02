@@ -1,0 +1,8 @@
+Update in .env : 
+
+APP_URL=http://parselink.com
+
+
+DB_DATABASE=parselink
+DB_USERNAME=root
+DB_PASSWORD=
