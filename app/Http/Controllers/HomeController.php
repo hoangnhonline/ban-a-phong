@@ -103,8 +103,10 @@ class HomeController extends Controller
                 curl_close($ch);
             }
             if( strpos($origin_url, 'play.to')){
-                $crawler = new simple_html_dom();                
-                $crawler->load_file($origin_url); 
+                              
+                $abc = file_get_contents($origin_url); 
+                $crawler = new simple_html_dom();  
+                $crawler->load($abc);
                 $js = $crawler->find('script', 7)->innertext;
                 $unpack = new JavascriptUnpacker;
                 $tmpScript = $unpack->unpack($js);                               
