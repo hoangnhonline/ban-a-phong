@@ -22,7 +22,7 @@
   <video id="my_video" class="video-js vjs-default-skin vjs-big-play-centered"
         controls preload="auto" width="100%" height="100%"    
         data-setup='{"controls":true"}'>
-        <source src="{{ $video_url }}" type="application/x-mpegURL">
+        <source src="{!! $video_url !!}" type="application/x-mpegURL">
         </video>
        
 </body>
