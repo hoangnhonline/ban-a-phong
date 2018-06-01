@@ -38,7 +38,10 @@ class HomeController extends Controller
         $ax_url = $request->ax_url ? $request->ax_url : null;
         $code = '';
         if($ax_url){
-            if( strpos($ax_url, 'yadi.sk') == 0){
+            if( strpos($ax_url, 'fastplay') == 0              
+                && strpos($ax_url, 'yadi.sk') == 0                  
+
+        ){
                 Session::put('not-support', 1);
             return redirect()->route('home');
             }else{
@@ -79,26 +82,67 @@ class HomeController extends Controller
         }       
         $video_url = $poster_url = $result = '';
         if($origin_url != ''){
-            $abc = file_get_contents($origin_url);             
-            $crawler = new simple_html_dom();  
-            $crawler->load($abc);
+            if(strpos($origin_url, 'fastplay') > 0){
+                $ch = curl_init();
+                curl_setopt( $ch, CURLOPT_USERAGENT, "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/3B48b Safari/419.3" );
+                curl_setopt( $ch, CURLOPT_URL, $origin_url );
+                curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
+                curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+                $ip = $_SERVER['REMOTE_ADDR'];
+                curl_setopt( $ch, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "HTTP_X_FORWARDED_FOR: $ip"));
+                $result = curl_exec($ch);
 
-            $js = $crawler->find('script', 5)->innertext;
-            if($js){
-                $tmp = json_decode($js);                    
-                $rootResourceId = $tmp->rootResourceId;                    
-                $videoArr = $tmp->resources->$rootResourceId->videoStreams->videos;
-                $rs = $videoArr[count($videoArr)-1];
-                $mediaId = $rootResourceId;
-                $video_url = $rs->url;
-                if($tmp->resources->$rootResourceId->meta->xxxlPreview){
-                    $poster_url = $tmp->resources->$rootResourceId->meta->xxxlPreview;
+                curl_close($ch);
+                $crawler = new simple_html_dom();                
+                $crawler->load($result);  
+
+                $js = $crawler->find('script', 5)->innertext;
+                $unpack = new JavascriptUnpacker;
+                $tmpScript = $unpack->unpack($js);                               
+                $tmp = explode('{file:"', $tmpScript);
+                if(isset($tmp[1])){
+                    $tmp = explode('"', $tmp[1]);   
+                    $video_url = $tmp[0];                 
                 }else{
-                    $poster_url = $tmp->resources->$rootResourceId->meta->defaultPreview;
-                }                    
-            }                
-                      
-            return view('play', compact('video_url', 'poster_url'));    
+                    echo ('Video not exists.');die;
+                }
+                $tmpPoster = explode('image:"', $tmpScript);              
+                if(isset($tmpPoster[1])){
+                    $tmp = explode('"', $tmpPoster[1]);   
+                    $poster_url = $tmp[0];                 
+                } 
+                 return view('jw-play', compact('video_url', 'poster_url'));    
+            }
+            if(strpos($origin_url, 'yadi.sk') > 0){
+                $ch = curl_init();
+                curl_setopt( $ch, CURLOPT_USERAGENT, "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420.1 (KHTML, like Gecko) Version/3.0 Mobile/3B48b Safari/419.3" );
+                curl_setopt( $ch, CURLOPT_URL, $origin_url );
+                curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
+                curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+                $ip = $_SERVER['REMOTE_ADDR'];
+                curl_setopt( $ch, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "HTTP_X_FORWARDED_FOR: $ip"));
+                $result = curl_exec($ch);
+                curl_close($ch);
+                $crawler = new simple_html_dom();                
+                $crawler->load($result);  
+
+                $js = $crawler->find('script', 5)->innertext;
+                if($js){
+                    $tmp = json_decode($js);                    
+                    $rootResourceId = $tmp->rootResourceId;                    
+                    $videoArr = $tmp->resources->$rootResourceId->videoStreams->videos;
+                    $rs = $videoArr[count($videoArr)-1];
+                    $mediaId = $rootResourceId;
+                    $video_url = $rs->url;
+                    if($tmp->resources->$rootResourceId->meta->xxxlPreview){
+                        $poster_url = $tmp->resources->$rootResourceId->meta->xxxlPreview;
+                    }else{
+                        $poster_url = $tmp->resources->$rootResourceId->meta->defaultPreview;
+                    }                    
+                }   
+                return view('play', compact('video_url', 'poster_url'));    
+            }
+           
         }else{
             dd('Invalid code');
         }
